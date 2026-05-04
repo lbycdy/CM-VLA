@@ -1,0 +1,5 @@
+depth_map_mode: zeronear
+mujoco_near_m: 0.01060981611847304
+mujoco_far_m: 530.490780726692
+camera_names: ['agentview', 'robot0_eye_in_hand']
+flip_ud: True

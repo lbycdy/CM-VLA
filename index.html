@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description"
+    content="CM-VLA: Camera-Space-Guided Mixture-of-Experts Policy for Few-shot Cross-Embodiment Transfer" />
+  <title>CM-VLA: Camera-Space-Guided Mixture-of-Experts Policy</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #222222;
+      --muted: #5f6368;
+      --line: #e7e7e7;
+      --soft: #f8fafc;
+      --lavender: #8d62c8;
+      --lavender-soft: #f1eafa;
+      --cyan: #2eb9c8;
+      --cyan-soft: #e9fbfd;
+      --pink: #ec4f9a;
+      --orange: #e86e00;
+      --shadow: 0 18px 48px rgba(30, 41, 59, 0.10);
+      --radius: 18px;
+      --maxw: 1040px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(141, 98, 200, 0.10), transparent 26rem),
+        radial-gradient(circle at top right, rgba(46, 185, 200, 0.12), transparent 25rem),
+        var(--bg);
+      line-height: 1.62;
+    }
+
+    a {
+      color: #2770b8;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.82);
+      border-bottom: 1px solid rgba(231, 231, 231, 0.8);
+    }
+
+    .nav {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      font-size: 14px;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+    }
+
+    .navlinks {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .navlinks a {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .navlinks a:hover {
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--maxw), calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 58px 0 34px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--lavender-soft), var(--cyan-soft));
+      color: #4d3b78;
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: 0.02em;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 5.4vw, 56px);
+      line-height: 1.08;
+      font-weight: 500;
+      margin: 0 auto 14px;
+      max-width: 950px;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 21px);
+      margin: 0 auto 20px;
+      max-width: 860px;
+    }
+
+    .authors,
+    .affiliations {
+      max-width: 900px;
+      margin: 0 auto;
+      color: #333;
+    }
+
+    .authors {
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .affiliations {
+      font-size: 15px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .authors sup,
+    .affiliations sup {
+      font-size: 0.68em;
+      color: var(--muted);
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 24px 0 8px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      color: white;
+      background: #27272a;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.10);
+      font-weight: 750;
+      font-size: 14px;
+    }
+
+    .button:hover {
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .button.secondary {
+      background: var(--cyan);
+    }
+
+    .button.purple {
+      background: var(--lavender);
+    }
+
+    .button.disabled {
+      background: #b6b6b6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .teaser-card {
+      margin: 30px auto 4px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .teaser-card img {
+      border-radius: 16px;
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .caption {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      margin-top: 10px;
+      line-height: 1.45;
+    }
+
+    .caption1 {
+      color: var(--linked);
+      font-size: 18px;
+      text-align: justify;
+      margin-top: 10px;
+      line-height: 1.45;
+    }
+
+    .caption2 {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: justify;
+      margin-top: 10px;
+      line-height: 1.45;
+    }
+
+    .caption strong {
+      color: var(--ink);
+    }
+
+    section {
+      padding: 28px 0 34px;
+      border-top: 1px solid var(--line);
+    }
+
+    h2 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(25px, 3.4vw, 36px);
+      font-weight: 500;
+      line-height: 1.2;
+      margin: 0 0 18px;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 21px;
+      margin: 8px 0 8px;
+      color: #333;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    .lead {
+      font-size: 18px;
+      color: #404040;
+      max-width: 900px;
+      margin: 0 auto 18px;
+      text-align: center;
+    }
+
+    .lead1 {
+      font-size: 18px;
+      color: #404040;
+      max-width: 900px;
+      margin: 0 auto 18px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .prose {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .prose p {
+      text-align: justify;
+    }
+
+    .tldr {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .takeaway {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .icon {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--lavender-soft), var(--cyan-soft));
+      color: var(--lavender);
+      font-weight: 900;
+    }
+
+    .takeaway strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .takeaway span {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .figure {
+      margin: 18px auto 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: white;
+      box-shadow: 0 12px 32px rgba(30, 41, 59, 0.07);
+    }
+
+    .figure img {
+      border-radius: 14px;
+      background: white;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      background: #fff;
+      box-shadow: 0 10px 28px rgba(30, 41, 59, 0.06);
+    }
+
+    .card1 {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      text-align: justify;
+      background: #fff;
+      box-shadow: 0 10px 28px rgba(30, 41, 59, 0.06);
+    }
+
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .card ul {
+      margin: 10px 0 0 20px;
+      padding: 0;
+    }
+
+    .card li {
+      margin: 7px 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 20px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 10px 14px;
+      text-align: center;
+      background: white;
+      box-shadow: 0 8px 22px rgba(30, 41, 59, 0.06);
+    }
+
+    .stat .num {
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.05;
+      font-weight: 850;
+      color: var(--cyan);
+      letter-spacing: -0.04em;
+    }
+
+    .stat:nth-child(2n) .num {
+      color: var(--lavender);
+    }
+
+    .stat .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 7px;
+      line-height: 1.35;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: white;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+    }
+
+    th {
+      background: var(--soft);
+      font-weight: 800;
+      color: #333;
+    }
+
+    /* td:first-child, th:first-child { text-align: left; } */
+    td:first-child,
+    th:first-child {
+      text-align: center;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .ours {
+      font-weight: 850;
+      color: #118b98;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      margin: 10px auto 0;
+      max-width: 850px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #f6f8fa;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      overflow-x: auto;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    footer {
+      color: var(--muted);
+      text-align: center;
+      padding: 34px 20px 48px;
+      border-top: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .pill-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+
+
+    .video-strip {
+      max-width: 1020px;
+      margin: 22px auto 10px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .video-tile {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 6px;
+      box-shadow: 0 10px 26px rgba(30, 41, 59, 0.08);
+      overflow: hidden;
+    }
+
+    .video-tile video {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      display: block;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    .video-label {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .video-label1 {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.0;
+      text-align: justify;
+    }
+
+    .final-video-row {
+      max-width: 1020px;
+      margin: 26px auto 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .final-video-card {
+      display: grid;
+      grid-template-columns: 58% 42%;
+      gap: 14px;
+      align-items: center;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 10px;
+      box-shadow: 0 10px 28px rgba(30, 41, 59, 0.06);
+    }
+
+    .final-video-card video {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      display: block;
+      border-radius: 14px;
+      background: #000;
+    }
+
+    .final-video-text {
+      text-align: left;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .final-video-text strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .final-video-text1 {
+      margin-right: 10px;
+      text-align: justify;
+
+    }
+
+    @media (max-width: 840px) {
+      .final-video-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .final-video-card {
+        grid-template-columns: 1fr;
+      }
+
+      .final-video-text {
+        text-align: justify;
+
+      }
+    }
+
+
+    @media (max-width: 840px) {
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .navlinks {
+        justify-content: flex-start;
+        gap: 12px;
+      }
+
+      .video-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .tldr,
+      .split,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .prose p {
+        text-align: left;
+      }
+
+      th,
+      td {
+        padding: 8px;
+      }
+
+      table {
+        font-size: 13px;
+      }
+    }
+
+
+    @media (max-width: 560px) {
+      .video-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Main navigation">
+      <a class="brand" href="#top">CM-VLA</a>
+      <div class="navlinks">
+        <a href="#abstract">Abstract</a>
+        <a href="#method">Method</a>
+        <a href="#experiments">Experiments</a>
+        <a href="#routing">videos</a>
+        <a href="#citation">BibTeX</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero container" style="border-top:0;">
+      <div class="eyebrow">
+        <h1>CM-VLA: Camera-Space-Guided Mixture-of-Experts Policy for Few-shot Cross-Embodiment Transfer</h1>
+      </div>
+
+
+      <div class="authors">
+        Bo Liu<sup>1</sup>, Liming Zhang<sup>1</sup>, Yuhan Wang<sup>1</sup>, Yong Liu<sup>1,2,*</sup>
+      </div>
+      <div class="affiliations">
+        <div><sup>1</sup>Nanjing University of Science and Technology</div>
+        <div><sup>2</sup>State Key Laboratory of Intelligent Manufacturing of Advanced Construction Machinery</div>
+        <div><sup>*</sup>Corresponding author</div>
+      </div>
+      <div class="buttons">
+        <a class="button" href="assets/paper/cm-vla-paper.pdf">📄 Paper</a>
+        <a class="button purple disabled" href="#" aria-disabled="true">💻 Code coming soon</a>
+        <a class="button secondary disabled" href="#" aria-disabled="true">📦 ME-LIBERO </a>
+      </div>
+      <div class="video-strip" aria-label="Six looping rollout videos">
+        <div class="video-tile">
+          <video autoplay muted loop controls playsinline preload="auto">
+            <source
+              src="assets/videos/video2/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_xarm1.mp4"
+              type="video/mp4" />
+          </video>
+          <div class="video-label1">put the black bowl in the bottom drawer of the cabinet and close it.(xarm)</div>
+        </div>
+        <div class="video-tile">
+          <video autoplay muted loop controls playsinline preload="auto">
+            <source
+              src="assets/videos/video2/KITCHEN_SCENE6_rollout_put_the_yellow_and_white_mug_in_the_microwave_and_close_it_panda1.mp4"
+              type="video/mp4" />
+          </video>
+          <div class="video-label1">put the yellow and white mug in the microwave and close it.(panda)</div>
+        </div>
+        <div class="video-tile">
+          <video autoplay muted loop controls playsinline preload="auto">
+            <source
+              src="assets/videos/video2/LIVING_ROOM_SCENE2_put_both_the_cream_cheese_box_and_the_butter_in_the_basket_kinoca31.mp4"
+              type="video/mp4" />
+          </video>
+          <div class="video-label1">put both the cream cheese box and the butter in the basket.(kinoca3)</div>
+        </div>
+        <div class="video-tile">
+          <video autoplay muted loop controls playsinline preload="auto">
+            <source src="assets/videos/video2/pick_up_the_bbq_sauce_and_place_it_in_the_basket_ur5e1.mp4"
+              type="video/mp4" />
+          </video>
+          <div class="video-label1">pick up the bbq sauce and place it in the basket.(ur5e)</div>
+        </div>
+        <div class="video-tile">
+          <video autoplay muted loop controls playsinline preload="auto">
+            <source
+              src="assets/videos/video2/pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate_iiwa1.mp4"
+              type="video/mp4" />
+          </video>
+          <div class="video-label1">pick up the black bowl between the plate and the ramekin and place it on the
+            plate.(iiwa)</div>
+        </div>
+        <div class="video-tile">
+          <video autoplay muted loop controls playsinline preload="auto">
+            <source
+              src="assets/videos/video2/pick_up_the_black_bowl_on_the_ramekin_and_place_it_on_the_plate_sawyer1.mp4"
+              type="video/mp4" />
+          </video>
+          <div class="video-label1">pick up the black bowl on the ramekin and place it on the plate.(sawyer)</div>
+        </div>
+      </div>
+
+
+
+    </section>
+
+    <section id="abstract">
+      <div class="container">
+        <h2>Abstract</h2>
+        <div class="prose">
+          <p>Vision-language-action models (VLAs) adapt pre-trained vision-language models (VLMs) to robotic
+            manipulation
+            through large-scale, high-quality robot demonstrations, thereby narrowing the gap between perception and
+            action.
+            Unlike vision or language data, cross-embodiment demonstrations are inherently heterogeneous. Even under the
+            same end-effector delta control, substantial discrepancies remain in sensor configurations, proprioceptive
+            statistics,
+            and execution dynamics. This heterogeneity limites VLA’s generalization to new embodiment and typically
+            requires
+            extensive fine-tuning cost to achieve strong performance. Despite recent progress in latent and unified
+            action mod-
+            eling, it remains unclear how to reduce the adaptation cost induced by embodiment heterogeneity while
+            preserving
+            transferable action semantics. To address this challenge, we propose CM-VLA, a camera-space-guided
+            Mixture-of-
+            Experts framework for few-shot cross-embodiment transfer. Specifically, we introduce camera-space unified
+            actions
+            as an auxiliary supervision signal for training the vision-language backbone, allowing it to learn
+            observation-aligned
+            and embodiment-agnostic action semantics in a unified space, and thus capture generic atomic behaviors
+            shared across
+            different embodiments. Furthermore, we develop an embodiment-aware Mixture-of-Experts flow policy that
+            gener-
+            ates executable robot-space actions by translating shared camera-space semantics into embodiment-specific
+            control
+            commands. Extensive experiments in simulation and real world show that CM-VLA consistently outperforms
+            strong
+            VLA baselines and achieves state-of-the-art performance in few-shot cross-embodiment adaptation evaluations.
+            These
+            results suggest that grounding unified action semantics in camera space, together with embodiment-aware
+            execution
+            modeling, provides an effective and scalable route toward cross-embodiment generalization.</p>
+        </div>
+        <div class="pill-row" aria-label="Keywords">
+          <span class="pill">Camera-space unified actions</span>
+          <span class="pill">Mixture-of-Experts</span>
+          <span class="pill">Flow matching policy</span>
+          <span class="pill">Few-shot adaptation</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- <section id="tldr">
+      <div class="container">
+        <h2>TL;DR and Takeaways</h2>
+        <div class="tldr">
+          <div class="takeaway"><div class="icon">1</div><div><strong>Align action supervision with visual observations.</strong><span>CU-Actions supervise the VLM in camera space, reducing the mismatch between image observations and robot-space labels.</span></div></div>
+          <div class="takeaway"><div class="icon">2</div><div><strong>Separate what to do from how to execute.</strong><span>The VLM learns embodiment-agnostic action semantics; the MoE flow policy handles embodiment-specific execution.</span></div></div>
+          <div class="takeaway"><div class="icon">3</div><div><strong>Use shared and routed experts together.</strong><span>An always-activated shared expert captures cross-robot commonality, while sparse routed experts absorb robot-specific control variation.</span></div></div>
+          <div class="takeaway"><div class="icon">4</div><div><strong>Improve few-shot adaptation.</strong><span>CM-VLA reaches 59.7% at 100-shot and 92.3% at 300-shot averaged across held-out embodiments.</span></div></div>
+        </div>
+      </div>
+    </section> -->
+
+    <section id="motivation">
+      <div class="container">
+        <h2>Why Camera-Space Guidance & Embodiment-Aware MoE Execution?</h2>
+        <!-- <p class="lead">Existing latent or unified action methods often leave a gap between camera-aligned visual features and robot-space action supervision.</p> -->
+        <div class="figure"><img src="assets/images/motivation.webp"
+            alt="Comparison between existing paradigms and CM-VLA" /></div>
+        <p class="caption2">Figure 1: Existing paradigms in latent or unified action modeling. Most existing methods (a)
+          (c) often neglect the misalignment between visual observation and action supervision. Although (b) aligns the
+          observation and action spaces, transforming coordinates through camera calibration matrices introduces
+          additional error and execution complexity. (c) enhances cross-embodiment generalization through a simple
+          adaptation strategy, however, there performance on a new embodiment still depends heavily on large-scale
+          fine-tuning data, limiting its practicality for efficient transfer. <strong>(d) illustrates our proposed
+            method. In contrast to vanilla approaches, CM-VLA aligns the observation with the action supervision space
+            and employs an improved robot-specific MoE policy to achieve stronger cross-embodiment
+            generalization.</strong></p>
+        <div class="split">
+          <div class="card">
+            <h3>Problem I: Space misalignment</h3>
+            <p>Robot demonstrations are often observed from third-person or wrist-mounted cameras, while actions are
+              supervised in a robot-space frame. A policy must implicitly learn viewpoint-dependent transformations,
+              which makes optimization and transfer harder.</p>
+          </div>
+          <div class="card">
+            <h3>Problem II: Shallow execution mapping</h3>
+            <p>Latent or unified actions can preserve task semantics, but lightweight decoders or ID-routed adapters
+              often lack the structure needed to model kinematic constraints, control frequencies, and
+              embodiment-specific execution patterns.</p>
+          </div>
+        </div>
+        <p class="caption1">To reduce the prohibitive fine-tuning cost of embodied VLAs in real-world and mitigate their
+          sharp degradation under cross-embodiments generalization, it is insufficient to learn unified actions that
+          remain stable only at the task-semantic level. We propose a camera-space-guided Mixture-of-Experts policy for
+          few-shot cross-embodiment transfer under single-arm end-effector delta control.</p>
+      </div>
+    </section>
+
+    <section id="method">
+      <div class="container">
+        <h2>Method</h2>
+        <!-- <p class="lead">CM-VLA is built around two complementary stages: camera-space perception-level action learning and robot-space embodiment-aware execution.</p> -->
+        <img src="assets/images/teaser.webp" alt="Overview of CM-VLA framework" />
+        <p class="caption2">Figure 2: Overview of CM-VLA. The left purple part in (a) illustrates the camera-space VLM
+          backbone initalized from PaliGemma; the right blue part in (a) introduces the robot-space MoE policy derived
+          from flow matching, and (b) further depicts the detailed MoE architecture.</p>
+        <div class="split">
+          <div class="card1">
+            <h3>Camera-space VLM backbone</h3>
+            <ul>
+              <li>Introduce textual CoT and CU-Actions as auxiliary supervision.</li>
+              <li>Expose all-layer key-value features to condition the downstream policy.</li>
+              <li>Study doing what and embodiment-agnostic transferable representation.</li>
+            </ul>
+          </div>
+          <div class="card1">
+            <h3>Robot-space MoE flow policy</h3>
+            <ul>
+              <li>Combine a shared expert with Top-4 sparse routing over 16 routed experts.</li>
+              <li>Use load-balancing and embodiment-aware routing losses to stabilize specialization.</li>
+              <li>Study how to execute and embodiment-adaptive flow-matching policies.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="figure"><img src="assets/images/cu_actions.webp"
+            alt="Camera-space unified action generation pipeline" /></div>
+        <p class="caption2">Figure 3: Camera-space Unified Action supervision auto-generation pipeline. CU-Actions are
+          generated in simulation with privileged pose and calibration, and in real-world settings with
+          observation-aligned pose estimation from RGB-D cameras.</p>
+      </div>
+    </section>
+
+    <section id="experiments">
+      <div class="container">
+        <h2>Experiments</h2>
+        <p class="lead">CM-VLA is evaluated on standard LIBERO, the proposed multi-embodiment ME-LIBERO benchmark,
+          few-shot leave-one-robot-out adaptation, and real-world Sawyer manipulation.</p>
+        <div class="stats">
+          <div class="stat">
+            <div class="num">97.0%</div>
+            <div class="label">Avg. success on LIBERO</div>
+          </div>
+          <div class="stat">
+            <div class="num">97.9%</div>
+            <div class="label">Avg. success on ME-LIBERO</div>
+          </div>
+          <div class="stat">
+            <div class="num">74.0%</div>
+            <div class="label">Real-world normalized score</div>
+          </div>
+          <div class="stat">
+            <div class="num">59.7%</div>
+            <div class="label">100-shot adaptation</div>
+          </div>
+          <div class="stat">
+            <div class="num">92.3%</div>
+            <div class="label">300-shot adaptation</div>
+          </div>
+        </div>
+
+        <h3>Simulation benchmark</h3>
+        <p class="caption2">Table I: Comparison of different VLA models on the four LIBERO simulation environments.</p>
+        <table aria-label="LIBERO and ME-LIBERO simulation results">
+          <thead>
+            <tr>
+              <th>Fine-tuning Data</th>
+              <th>Method</th>
+              <th>Goal</th>
+              <th>Object</th>
+              <th>Spatial</th>
+              <th>Long</th>
+              <th>Avg.</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td rowspan="5">LIBERO</td>
+              <td>OpenVLA</td>
+              <td>79.2 &plusmn; 1.2%</td>
+              <td>88.4 &plusmn; 0.5%</td>
+              <td>84.7 &plusmn; 1.0%</td>
+              <td>53.7 &plusmn; 0.8%</td>
+              <td>76.5%</td>
+            </tr>
+
+            <tr>
+              <td>&pi;<sub>0</sub></td>
+              <td>94.0 &plusmn; 1.9%</td>
+              <td>97.8 &plusmn; 0.8%</td>
+              <td>91.4 &plusmn; 2.9%</td>
+              <td>85.2 &plusmn; 0.9%</td>
+              <td>92.1%</td>
+            </tr>
+
+            <tr>
+              <td>&pi;<sub>0.5</sub></td>
+              <td>98.0 &plusmn; 1.4%</td>
+              <td>98.2 &plusmn; 1.6%</td>
+              <td><strong>98.8 &plusmn; 0.5%</strong></td>
+              <td>92.4 &plusmn; 0.3%</td>
+              <td>96.9%</td>
+            </tr>
+
+            <tr>
+              <td>OC-VLA</td>
+              <td>94.4 &plusmn; 2.2%</td>
+              <td>97.1 &plusmn; 1.2%</td>
+              <td>95.7 &plusmn; 1.5%</td>
+              <td><strong>92.6 &plusmn; 0.4%</strong></td>
+              <td>95.0%</td>
+            </tr>
+
+            <tr class="ours-row">
+              <td>CM-VLA <span class="tag">(Ours)</span></td>
+              <td><strong>98.8 &plusmn; 0.4%</strong></td>
+              <td><strong>98.3 &plusmn; 0.4%</strong></td>
+              <td><strong>98.8 &plusmn; 0.2%</strong></td>
+              <td>92.0 &plusmn; 3.3%</td>
+              <td><strong>97.0%</strong></td>
+            </tr>
+
+            <tr>
+              <td rowspan="5">ME-LIBERO</td>
+              <td>OpenVLA</td>
+              <td>76.4 &plusmn; 0.9%</td>
+              <td>84.9 &plusmn; 0.8%</td>
+              <td>81.1 &plusmn; 1.0%</td>
+              <td>50.4 &plusmn; 1.3%</td>
+              <td>73.2%</td>
+            </tr>
+
+            <tr>
+              <td>&pi;<sub>0</sub></td>
+              <td>89.2 &plusmn; 2.1%</td>
+              <td>91.4 &plusmn; 0.9%</td>
+              <td>88.2 &plusmn; 3.5%</td>
+              <td>70.9 &plusmn; 3.3%</td>
+              <td>84.9%</td>
+            </tr>
+
+            <tr>
+              <td>&pi;<sub>0.5</sub></td>
+              <td>94.2 &plusmn; 1.6%</td>
+              <td>95.7 &plusmn; 2.1%</td>
+              <td>95.8 &plusmn; 1.1%</td>
+              <td>92.4 &plusmn; 0.3%</td>
+              <td>94.5%</td>
+            </tr>
+
+            <tr>
+              <td>OC-VLA</td>
+              <td>94.9 &plusmn; 1.4%</td>
+              <td>97.9 &plusmn; 0.2%</td>
+              <td>96.1 &plusmn; 0.8%</td>
+              <td>93.8 &plusmn; 0.9%</td>
+              <td>95.7%</td>
+            </tr>
+
+            <tr class="ours-row">
+              <td>CM-VLA <span class="tag">(Ours)</span></td>
+              <td><strong>99.5 &plusmn; 0.5%</strong></td>
+              <td><strong>98.4 &plusmn; 1.6%</strong></td>
+              <td><strong>99.5 &plusmn; 0.0%</strong></td>
+              <td><strong>94.1 &plusmn; 1.2%</strong></td>
+              <td><strong>97.9%</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="caption2">Table II: Cross-embodiment adaptation results under the leave-one-robot-out protocol.
+          Results define the average success rate (\%) over all four LIBERO suites when each robot is used as the unseen
+          embodiment.</p>
+        <div class="table-scroll">
+          <table class="adapt-table transposed" aria-label="Transposed cross-embodiment adaptation results">
+            <thead>
+              <tr>
+                <th>Unseen Robot</th>
+                <th>Shots</th>
+                <th>OpenVLA</th>
+                <th>&pi;<sub>0</sub></th>
+                <th>&pi;<sub>0.5</sub></th>
+                <th>UniAct</th>
+                <th>UniVLA</th>
+                <th>HiMoE-VLA</th>
+                <th>MODE</th>
+                <th>LatBot</th>
+                <th>LAD</th>
+                <th>OC-VLA</th>
+                <th>CM-VLA (Ours)</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td rowspan="3" class="robot">UR5</td>
+                <td>50-shot</td>
+                <td>0.0</td>
+                <td>3.2</td>
+                <td>4.2</td>
+                <td>23.7</td>
+                <td>28.4</td>
+                <td>28.5</td>
+                <td>6.5</td>
+                <td>23.7</td>
+                <td>18.7</td>
+                <td>10.3</td>
+                <td><strong>32.9</strong></td>
+              </tr>
+              <tr>
+                <td>100-shot</td>
+                <td>15.3</td>
+                <td>19.4</td>
+                <td>21.8</td>
+                <td>36.7</td>
+                <td>41.3</td>
+                <td>44.2</td>
+                <td>23.0</td>
+                <td>35.9</td>
+                <td>30.2</td>
+                <td>28.1</td>
+                <td><strong>59.8</strong></td>
+              </tr>
+              <tr>
+                <td>300-shot</td>
+                <td>41.2</td>
+                <td>40.1</td>
+                <td>44.3</td>
+                <td>79.2</td>
+                <td>85.2</td>
+                <td>89.1</td>
+                <td>48.1</td>
+                <td>80.0</td>
+                <td>62.1</td>
+                <td>66.4</td>
+                <td><strong>92.3</strong></td>
+              </tr>
+
+              <tr>
+                <td rowspan="3" class="robot">Franka</td>
+                <td>50-shot</td>
+                <td>0.0</td>
+                <td>2.4</td>
+                <td>4.5</td>
+                <td>25.6</td>
+                <td>29.3</td>
+                <td>26.8</td>
+                <td>5.2</td>
+                <td>24.3</td>
+                <td>19.3</td>
+                <td>9.2</td>
+                <td><strong>34.7</strong></td>
+              </tr>
+              <tr>
+                <td>100-shot</td>
+                <td>16.3</td>
+                <td>20.8</td>
+                <td>23.2</td>
+                <td>35.9</td>
+                <td>45.0</td>
+                <td>46.7</td>
+                <td>22.9</td>
+                <td>33.2</td>
+                <td>32.1</td>
+                <td>26.1</td>
+                <td><strong>60.9</strong></td>
+              </tr>
+              <tr>
+                <td>300-shot</td>
+                <td>44.6</td>
+                <td>42.7</td>
+                <td>43.6</td>
+                <td>77.9</td>
+                <td>85.9</td>
+                <td>88.2</td>
+                <td>45.0</td>
+                <td>78.5</td>
+                <td>64.1</td>
+                <td>64.7</td>
+                <td><strong>93.8</strong></td>
+              </tr>
+
+              <tr>
+                <td rowspan="3" class="robot">Sawyer</td>
+                <td>50-shot</td>
+                <td>0.0</td>
+                <td>0.0</td>
+                <td>2.4</td>
+                <td>20.7</td>
+                <td>24.1</td>
+                <td><strong>32.4</strong></td>
+                <td>3.2</td>
+                <td>21.0</td>
+                <td>19.3</td>
+                <td>7.1</td>
+                <td>29.8</td>
+              </tr>
+              <tr>
+                <td>100-shot</td>
+                <td>11.3</td>
+                <td>12.0</td>
+                <td>13.5</td>
+                <td>30.6</td>
+                <td>35.6</td>
+                <td>50.7</td>
+                <td>19.4</td>
+                <td>31.8</td>
+                <td>27.6</td>
+                <td>25.0</td>
+                <td><strong>52.6</strong></td>
+              </tr>
+              <tr>
+                <td>300-shot</td>
+                <td>35.7</td>
+                <td>38.9</td>
+                <td>39.1</td>
+                <td>69.0</td>
+                <td>72.0</td>
+                <td><strong>88.9</strong></td>
+                <td>35.2</td>
+                <td>71.9</td>
+                <td>53.2</td>
+                <td>58.7</td>
+                <td>88.7</td>
+              </tr>
+
+              <tr>
+                <td rowspan="3" class="robot">KUKA iiwa</td>
+                <td>50-shot</td>
+                <td>0.0</td>
+                <td>3.3</td>
+                <td>4.2</td>
+                <td>24.8</td>
+                <td>30.2</td>
+                <td>33.8</td>
+                <td>6.8</td>
+                <td>24.1</td>
+                <td>16.9</td>
+                <td>10.2</td>
+                <td><strong>36.8</strong></td>
+              </tr>
+              <tr>
+                <td>100-shot</td>
+                <td>15.5</td>
+                <td>16.8</td>
+                <td>18.3</td>
+                <td>34.9</td>
+                <td>47.3</td>
+                <td>53.6</td>
+                <td>24.1</td>
+                <td>37.8</td>
+                <td>30.1</td>
+                <td>27.3</td>
+                <td><strong>61.0</strong></td>
+              </tr>
+              <tr>
+                <td>300-shot</td>
+                <td>42.9</td>
+                <td>49.7</td>
+                <td>52.7</td>
+                <td>76.2</td>
+                <td>87.2</td>
+                <td>90.4</td>
+                <td>85.8</td>
+                <td>82.0</td>
+                <td>63.0</td>
+                <td>68.0</td>
+                <td><strong>93.2</strong></td>
+              </tr>
+
+              <tr>
+                <td rowspan="3" class="robot">Kinova3</td>
+                <td>50-shot</td>
+                <td>0.0</td>
+                <td>1.9</td>
+                <td>2.1</td>
+                <td>23.9</td>
+                <td>29.4</td>
+                <td>32.9</td>
+                <td>6.2</td>
+                <td>23.8</td>
+                <td>17.9</td>
+                <td>11.4</td>
+                <td><strong>35.9</strong></td>
+              </tr>
+              <tr>
+                <td>100-shot</td>
+                <td>14.9</td>
+                <td>21.1</td>
+                <td>25.7</td>
+                <td>34.7</td>
+                <td>44.8</td>
+                <td>55.7</td>
+                <td>23.7</td>
+                <td>37.2</td>
+                <td>31.7</td>
+                <td>29.4</td>
+                <td><strong>60.4</strong></td>
+              </tr>
+              <tr>
+                <td>300-shot</td>
+                <td>43.8</td>
+                <td>44.8</td>
+                <td>49.4</td>
+                <td>75.2</td>
+                <td><strong>93.0</strong></td>
+                <td>90.1</td>
+                <td>87.3</td>
+                <td>81.9</td>
+                <td>64.8</td>
+                <td>70.3</td>
+                <td>92.9</td>
+              </tr>
+
+              <tr>
+                <td rowspan="3" class="robot">xArm</td>
+                <td>50-shot</td>
+                <td>0.0</td>
+                <td>2.6</td>
+                <td>4.9</td>
+                <td>24.1</td>
+                <td>29.9</td>
+                <td><strong>32.0</strong></td>
+                <td>5.9</td>
+                <td>25.9</td>
+                <td>17.3</td>
+                <td>10.8</td>
+                <td><strong>32.0</strong></td>
+              </tr>
+              <tr>
+                <td>100-shot</td>
+                <td>17.2</td>
+                <td>18.2</td>
+                <td>21.3</td>
+                <td>35.0</td>
+                <td>43.7</td>
+                <td>56.1</td>
+                <td>23.7</td>
+                <td>34.8</td>
+                <td>32.0</td>
+                <td>26.8</td>
+                <td><strong>63.4</strong></td>
+              </tr>
+              <tr>
+                <td>300-shot</td>
+                <td>47.0</td>
+                <td>47.1</td>
+                <td>52.0</td>
+                <td>76.1</td>
+                <td>87.8</td>
+                <td>89.9</td>
+                <td>88.9</td>
+                <td>80.5</td>
+                <td>62.9</td>
+                <td>72.4</td>
+                <td><strong>93.1</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+
+        <div class="figure"><img src="assets/images/real_world.webp" alt="Real-world evaluation on Sawyer robot" />
+        </div>
+        <p class="caption2">Figure 4: Real-world evaluation on a Sawyer robot. We report normalized scores under four
+          settings: spatial relationship generalization (different spatial arrangements), color variation (different
+          target colors), in-domain generalization (different goals in the same scene), and out-of-domain generalization
+          (different scenes). CM-VLA achieves the best overall performance and shows the largest advantage under
+          out-of-domain scene changes.</p>
+
+        <div class="split">
+          <div>
+            <div class="figure"><img src="assets/images/few_shot.webp"
+                alt="Few-shot cross-embodiment adaptation curves" /></div>
+            <p class="caption2">Figure 5: Results of few-shot cross-embodiment adaptation.</p>
+          </div>
+          <div class="card1">
+            <!-- <h3>Conclusion</h3> -->
+            <p>To address the misalignment between visual observations and action supervision, as well as the lack of
+              structured modeling between unified actions and embodiment-specific execution, we introduce CU-Actions as
+              auxiliary supervision, enabling the VLM backbone to learn embodiment-agnostic perception-level action.
+              Moreover, our action policy employs shared and routed experts to jointly capture cross-embodiment shared
+              structures and embodiment-specific variations, thereby explicitly disentangling what to do from how to
+              execute it. </p>
+            <p>Extensive experiments in both simulation and real-world settings show that CM-VLA consistently
+              outperforms strong baselines on standard LIBERO, ME-LIBERO, and real-world Sawyer evaluations. In
+              particular, under low-data adaptation regimes, CM-VLA exhibits substantially higher sample efficiency and
+              stronger cross-embodiment generalization. </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="routing">
+      <div class="container">
+        <h2>Multi-embodiments Rollout Videos</h2>
+        <p class="lead">Cross-embodiment adaptation results videos under the 300-shot leave-one-robot-out protocol.</p>
+        <div class="video-strip" aria-label="Six looping rollout videos">
+          <div class="video-tile">
+            <video autoplay muted loop controls playsinline preload="auto">
+              <source
+                src="assets/videos/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_iiwa2.mp4"
+                type="video/mp4" />
+            </video>
+            <div class="video-label">KUKA iiwa</div>
+          </div>
+          <div class="video-tile">
+            <video autoplay muted loop controls playsinline preload="auto">
+              <source
+                src="assets/videos/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_kinova31.mp4"
+                type="video/mp4" />
+            </video>
+            <div class="video-label">Kinova3</div>
+          </div>
+          <div class="video-tile">
+            <video autoplay muted loop controls playsinline preload="auto">
+              <source
+                src="assets/videos/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_panda2.mp4"
+                type="video/mp4" />
+            </video>
+            <div class="video-label">Panda</div>
+          </div>
+          <div class="video-tile">
+            <video autoplay muted loop controls playsinline preload="auto">
+              <source
+                src="assets/videos/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_sawyer2.mp4"
+                type="video/mp4" />
+            </video>
+            <div class="video-label">Sawyer</div>
+          </div>
+          <div class="video-tile">
+            <video autoplay muted loop controls playsinline preload="auto">
+              <source
+                src="assets/videos/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_ur5e1.mp4"
+                type="video/mp4" />
+            </video>
+            <div class="video-label">UR5e</div>
+          </div>
+          <div class="video-tile">
+            <video autoplay muted loop controls playsinline preload="auto">
+              <source
+                src="assets/videos/KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it_xarm1.mp4"
+                type="video/mp4" />
+            </video>
+            <div class="video-label">xArm</div>
+          </div>
+        </div>
+        <div class="video-label">put the black bowl in the bottom drawer of the cabinet and close it.(300-shot)</div>
+        <div class="container">
+          <p class="lead1">Cross-embodiment adaptation results videos under the ME-LIBERO.</p>
+          <div class="video-strip" aria-label="Six looping rollout videos">
+            <div class="video-tile">
+              <video autoplay muted loop controls playsinline preload="auto">
+                <source src="assets/videos/video2/pick_up_the_orange_juice_and_place_it_in_the_basket_xarm1.mp4"
+                  type="video/mp4" />
+              </video>
+              <div class="video-label1">pick up the orange juice and place it in the basket.(xarm)</div>
+            </div>
+            <div class="video-tile">
+              <video autoplay muted loop controls playsinline preload="auto">
+                <source src="assets/videos/video2/put_the_bowl_on_the_plate_sawyer1.mp4" type="video/mp4" />
+              </video>
+              <div class="video-label1">put the bowl on the plate.(sawyer)</div>
+            </div>
+            <div class="video-tile">
+              <video autoplay muted loop controls playsinline preload="auto">
+                <source src="assets/videos/video2/pick_up_the_cream_cheese_and_place_it_in_the_basket_iiwa1.mp4"
+                  type="video/mp4" />
+              </video>
+              <div class="video-label1">pick up the cream cheese and place it in the basket.(iiwa)</div>
+            </div>
+            <div class="video-tile">
+              <video autoplay muted loop controls playsinline preload="auto">
+                <source src="assets/videos/video2/pick_up_the_chocolate_pudding_and_place_it_in_the_basket_ur5e1.mp4"
+                  type="video/mp4" />
+              </video>
+              <div class="video-label1">pick up the chocolate pudding and place it in the basket.(ur5e)</div>
+            </div>
+            <div class="video-tile">
+              <video autoplay muted loop controls playsinline preload="auto">
+                <source src="assets/videos/video2/pick_up_the_orange_juice_and_place_it_in_the_basket_panda1.mp4"
+                  type="video/mp4" />
+              </video>
+              <div class="video-label1">pick up the orange juice and place it in the basket.(panda)</div>
+            </div>
+            <div class="video-tile">
+              <video autoplay muted loop controls playsinline preload="auto">
+                <source
+                  src="assets/videos/video2/LIVING_ROOM_SCENE6_put_the_white_mug_on_the_plate_and_put_the_chocolate_pudding_to_the_right_of_the_plate_kinoca31.mp4"
+                  type="video/mp4" />
+              </video>
+              <div class="video-label1">put the white mug on the plate and put the chocolate pudding to the right of the
+                plate.(kinoca3)</div>
+            </div>
+          </div>
+
+
+
+          <div class="container">
+            <p class="lead1">Real-world rollout videos on a Sawyer robot.</p>
+            <div class="video-strip" aria-label="Six looping rollout videos">
+              <div class="video-tile">
+                <video autoplay muted loop controls playsinline preload="auto">
+                  <source src="assets/videos/realworld/atraj600.mp4" type="video/mp4" />
+                </video>
+                <div class="video-label1">put both the ball and wooden block in the drawer.(In-domain)</div>
+              </div>
+              <div class="video-tile">
+                <video autoplay muted loop controls playsinline preload="auto">
+                  <source src="assets/videos/realworld/atraj601.mp4" type="video/mp4" />
+                </video>
+                <div class="video-label1">pick up the ball and place it in the basket hoop.(In-domain)</div>
+              </div>
+              <div class="video-tile">
+                <video autoplay muted loop controls playsinline preload="auto">
+                  <source src="assets/videos/realworld/atraj611.mp4" type="video/mp4" />
+                </video>
+                <div class="video-label1">Move the vegetables to the plate on the right.(Spatial relationship)</div>
+              </div>
+              <div class="video-tile">
+                <video autoplay muted loop controls playsinline preload="auto">
+                  <source src="assets/videos/realworld/atraj612.mp4" type="video/mp4" />
+                </video>
+                <div class="video-label1">pick up both the knife and fork on the plate.(In-domain)
+                </div>
+              </div>
+              <div class="video-tile">
+                <video autoplay muted loop controls playsinline preload="auto">
+                  <source src="assets/videos/realworld/atraj606.mp4" type="video/mp4" />
+                </video>
+                <div class="video-label1">pick up the pink cloth and place it on the basket.(Colorable objects)</div>
+              </div>
+              <div class="video-tile">
+                <video autoplay muted loop controls playsinline preload="auto">
+                  <source src="assets/videos/realworld/atraj604.mp4" type="video/mp4" />
+                </video>
+                <div class="video-label1">pick all the wooden blocks on the shelf.(Out-of-domain)</div>
+              </div>
+            </div>
+            <p class="video-label1">We report normalized scores under four settings: spatial relationship generalization
+              (different spatial arrangements), color variation (different target colors), in-domain generalization
+              (different goals in the same scene), and out-of-domain generalization (different scenes).</p>
+
+
+            <p class="lead1">Comparison between baseline and CM-VLA under 300-shot leave-panda-out protocol.</p>
+
+            <div class="final-video-row" aria-label="Two additional rollout videos with descriptions">
+              <div class="final-video-card">
+                <video autoplay muted loop controls playsinline preload="auto">
+                  <source src="assets/videos/put_the_wine_bottle_on_top_of_the_cabinet_panda.mp4" type="video/mp4" />
+                </video>
+                <div class="final-video-text">
+                  <strong>Baseline</strong>
+                  <div class="final-video-text1">Although grabbing the bottle, there was an error in the subsequent
+                    movement, causing the bottle to fall and fail the task. </div>
+
+                </div>
+              </div>
+
+              <div class="final-video-card">
+                <video autoplay muted loop controls playsinline preload="auto">
+                  <source src="assets/videos/put_the_wine_bottle_on_top_of_the_cabinet_panda1.mp4" type="video/mp4" />
+                </video>
+                <div class="final-video-text">
+                  <strong>CM-VLA</strong>
+                  Our method successfully grasps the bottle and places it on the cabinet without any errors.
+                </div>
+              </div>
+            </div>
+
+
+
+          </div>
+    </section>
+
+    <section id="citation">
+      <div class="container">
+        <h2>BibTeX</h2>
+        <pre><code>@article{liu2026cmvla,
+  title   = {CM-VLA: Camera-Space-Guided Mixture-of-Experts Policy for Few-shot Cross-Embodiment Transfer},
+  author  = {Liu, Bo and Zhang, Liming and Wang, Yuhan and Liu, Yong},
+  year    = {2026},
+  note    = {Manuscript}
+}</code></pre>
+        <p class="note">Update the venue, year, and links above once the paper, complete code and dataset will be
+          publicly released.
+        </p>
+      </div>
+    </section>
+  </main>
+
+
+</body>
+
+</html>
