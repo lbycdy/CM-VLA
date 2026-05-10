@@ -48,3 +48,11 @@ You can fine-tune the "CM-expert" checkpoints for various robot platforms and ta
 | ------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | $\pi_{0.5}$-LIBERO      | Fine-Tuning / Inference   | CM-VLA model fine-tuned for the [LIBERO](https://libero-project.github.io/datasets) |
 | $\pi_{0.5}$-ME-LIBERO          | Fine-Tuning / Inference | CM-VLA model fine-tuned for the [ME-LIBERO](https://huggingface.co/datasets/lbycdy/ME-LIBERO)  | 
+
+## Fine-Tuning Base Models on ME-LIBERO or Your Own Data
+
+You can fine-tune the CM-VLA model on the [ME-LIBERO dataset](https://huggingface.co/datasets/lbycdy/ME-LIBERO) as a running example for how to fine-tune a base model on your own data. We will explain three steps:
+1. Convert your data to a LeRobot dataset (which we use for training)
+2. Defining training configs and running training
+3. Spinning up a policy server and running inference
+
