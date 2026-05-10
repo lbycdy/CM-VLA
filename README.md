@@ -56,3 +56,43 @@ You can fine-tune the CM-VLA model on the [ME-LIBERO dataset](https://huggingfac
 2. Defining training configs and running training
 3. Spinning up a policy server and running inference
 
+### 1. Convert ME-LIBERO or your data to a LeRobot dataset
+
+We provide a minimal example script for converting ME-LIBERO data to a LeRobot dataset in [`examples/libero/convert_libero_data_to_lerobot.py`](examples/libero/convert_libero_data_to_lerobot.py). You can easily modify it to convert your own data! You can download the raw ME-LIBERO dataset from [here]([https://huggingface.co/datasets/openvla/modified_libero_rlds](https://huggingface.co/datasets/lbycdy/ME-LIBERO)), and run the script with:
+
+```bash
+uv run examples/libero/convert_libero_data_to_lerobot.py --data_dir /path/to/your/libero/data
+```
+### 2. Defining training configs and running training
+
+To fine-tune a base model on ME-LIBERO or your own data, you need to define configs for data processing and training. We provide example configs with detailed comments for ME-LIBERO below, which you can modify for your own dataset:
+
+- [`LiberoInputs` and `LiberoOutputs`](src/openpi/policies/libero_policy.py): Defines the data mapping from the LIBERO environment to the model and vice versa. Will be used for both, training and inference.
+- [`LeRobotLiberoDataConfig`](src/openpi/training/config.py): Defines how to process raw LIBERO data from LeRobot dataset for training.
+- [`TrainConfig`](src/openpi/training/config.py): Defines fine-tuning hyperparameters, data config, and weight loader.
+
+We provide example fine-tuning configs for [CM-VLA](src/openpi/training/config.py) on ME-LIBERO data.
+
+Before we can run training, we need to compute the normalization statistics for the training data. Run the script below with the name of your training config:
+
+```bash
+uv run scripts/compute_norm_stats.py --config-name cmvla_libero
+```
+
+Now we can kick off training with the following command (the `--overwrite` flag is used to overwrite existing checkpoints if you rerun fine-tuning with the same config):
+
+```bash
+XLA_PYTHON_CLIENT_MEM_FRACTION=0.9 uv run scripts/train.py cmvla_libero --exp-name=my_experiment --overwrite
+```
+
+The command will log training progress to the console and save checkpoints to the `checkpoints` directory. You can also monitor training progress on the Weights & Biases dashboard. For maximally using the GPU memory, set `XLA_PYTHON_CLIENT_MEM_FRACTION=0.9` before running training -- this enables JAX to use up to 90% of the GPU memory (vs. the default of 75%).
+
+**Note:** We provide functionality for *reloading* normalization statistics for state / action normalization from pre-training. This can be beneficial if you are fine-tuning to a new task on a robot that was part of our pre-training mixture. For more details on how to reload normalization statistics, see the [norm_stats.md](docs/norm_stats.md) file.
+
+### 3. Spinning up a policy server and running inference
+
+Once training is complete, we can run inference by spinning up a policy server and then querying it from a ME-LIBERO evaluation script. Launching a model server is easy (we use the checkpoint for iteration 60,000 for this example, modify as needed):
+
+```bash
+uv run scripts/serve_policy.py policy:checkpoint --policy.config=cmvla_libero --policy.dir=checkpoints/cmvla_libero/my_experiment/60000
+```
