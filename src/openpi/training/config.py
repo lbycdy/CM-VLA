@@ -734,12 +734,10 @@ _CONFIGS = [
         ema_decay=None,
     ),
     TrainConfig(
-        name="pi05_libero",
+        name="cmvla_libero",
         model=pi0_config.Pi0Config(pi05=True, action_horizon=10, discrete_state_input=False),
         data=LeRobotLiberoDataConfig(
-            # repo_id="physical-intelligence/libero",
-            # repo_id="lbycdy/libero_camera",
-            repo_id="lbycdy/libero_20251219actionV3",
+            repo_id="lbycdy/libero_20251219actionV3", #change ME-LIBERO
             base_config=DataConfig(prompt_from_task=True),
             extra_delta_transform=False,
         ),
@@ -754,7 +752,7 @@ _CONFIGS = [
         ema_decay=0.999,
         weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi05_base/params"),
         pytorch_weight_path="/path/to/your/pytorch_weight_path",
-        num_train_steps=30_000,
+        num_train_steps=60_000,
     ),
     #
     # Fine-tuning Aloha configs.
