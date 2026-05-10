@@ -14,10 +14,10 @@ The repo has been tested with Ubuntu 20.04, we do not currently support other op
 
 ## Installation
 
-You can refer to the [HTTS](https://github.com/Physical-Intelligence/openpi) installation environment. When cloning this repo, make sure to update submodules:
+You can refer to the [OpenPi](https://github.com/Physical-Intelligence/openpi) installation environment. When cloning this repo, make sure to update submodules:
 
 ```bash
-git clone --recurse-submodules git@github.com:Physical-Intelligence/openpi.git
+git clone --recurse-submodules git@github.com:lbycdy/CM-VLA.git
 
 # Or if you already cloned the repo:
 git submodule update --init --recursive
