@@ -765,8 +765,7 @@
       <div class="container">
         <h2>Abstract</h2>
         <div class="prose">
-          <p>Vision-language-action models (VLAs) adapt pre-trained vision-language models (VLMs) to robotic
-            manipulation
+          <p>Vision-language-action models (VLAs) adapt pre-trained vision-language models (VLMs) to robotic manipulation
             through large-scale, high-quality robot demonstrations, thereby narrowing the gap between perception and
             action.
             Unlike vision or language data, cross-embodiment demonstrations are inherently heterogeneous. Even under the
@@ -775,20 +774,17 @@
             and execution dynamics. This heterogeneity limites VLA’s generalization to new embodiment and typically
             requires
             extensive fine-tuning cost to achieve strong performance. Despite recent progress in latent and unified
-            action mod-
-            eling, it remains unclear how to reduce the adaptation cost induced by embodiment heterogeneity while
+            action modeling, it remains unclear how to reduce the adaptation cost induced by embodiment heterogeneity while
             preserving
             transferable action semantics. To address this challenge, we propose CM-VLA, a camera-space-guided
-            Mixture-of-
-            Experts framework for few-shot cross-embodiment transfer. Specifically, we introduce camera-space unified
+            Mixture-of-Experts framework for few-shot cross-embodiment transfer. Specifically, we introduce camera-space unified
             actions
             as an auxiliary supervision signal for training the vision-language backbone, allowing it to learn
             observation-aligned
             and embodiment-agnostic action semantics in a unified space, and thus capture generic atomic behaviors
             shared across
             different embodiments. Furthermore, we develop an embodiment-aware Mixture-of-Experts flow policy that
-            gener-
-            ates executable robot-space actions by translating shared camera-space semantics into embodiment-specific
+            generates executable robot-space actions by translating shared camera-space semantics into embodiment-specific
             control
             commands. Extensive experiments in simulation and real world show that CM-VLA consistently outperforms
             strong
