@@ -46,5 +46,5 @@ You can fine-tune the "CM-expert" checkpoints for various robot platforms and ta
 
 | Model                    | Use Case    | Description                                                                                                                                                                                              | 
 | ------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| $\pi_05$-LIBERO      | Inference   | $\pi_0$-FAST model fine-tuned on the [DROID dataset](https://droid-dataset.github.io/): can perform a wide range of simple table-top manipulation tasks 0-shot in new scenes on the DROID robot platform |
-| $\pi_05$-ME-LIBERO          | Fine-Tuning | $\pi_0$ model fine-tuned on the [DROID dataset](https://droid-dataset.github.io/): faster inference than $\pi_0$-FAST-DROID, but may not follow language commands as well                                | 
+| $\pi_{0.5}$-LIBERO      | Fine-Tuning / Inference   | $\pi_{0.5}$ model fine-tuned for the [LIBERO](https://libero-project.github.io/datasets) |
+| $\pi_{0.5}$-ME-LIBERO          | Fine-Tuning / Inference | $\pi_0$ model fine-tuned on the [DROID dataset](https://droid-dataset.github.io/): faster inference than $\pi_0$-FAST-DROID, but may not follow language commands as well                                | 
