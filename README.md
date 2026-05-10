@@ -31,3 +31,21 @@ GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 ```
 
 NOTE: `GIT_LFS_SKIP_SMUDGE=1` is needed to pull LeRobot as a dependency.
+
+## Model Checkpoints
+
+### Base Models
+We provide multiple base VLA model checkpoints. These checkpoints have been pre-trained on 10k+ hours of robot data, and can be used for fine-tuning.
+
+| Model        | Use Case    | Description                                                                                                 | 
+| ------------ | ----------- | ----------------------------------------------------------------------------------------------------------- | 
+| $\pi_{0.5}$    | Fine-Tuning | Base [π₀.₅ model](https://www.physicalintelligence.company/blog/pi05) for fine-tuning    | 
+
+### Fine-Tuned Models
+We also provide "expert" checkpoints for various robot platforms and tasks. These models are fine-tuned from the base models above and intended to run directly on the target robot. These may or may not work on your particular robot. Since these checkpoints were fine-tuned on relatively small datasets collected with more widely available robots, such as ALOHA and the DROID Franka setup, they might not generalize to your particular setup, though we found some of these, especially the DROID checkpoint, to generalize quite broadly in practice.
+
+| Model                    | Use Case    | Description                                                                                                                                                                                              | 
+| ------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | 
+
+| $\pi_{0.5}$-LIBERO      | Inference / Fine-Tuning   | $\pi_{0.5}$ model fine-tuned for the [LIBERO](https://libero-project.github.io/datasets) benchmark: gets state-of-the-art performance  |
+| $\pi_{0.5}$-ME-LIBERO      | Inference / Fine-Tuning | $\pi_{0.5}$ model fine-tuned on the [ME-LIBERO](https://droid-dataset.github.io/) with [knowledge insulation](https://www.physicalintelligence.company/research/knowledge_insulation): fast inference and good language-following | 
