@@ -46,5 +46,5 @@ You can fine-tune the "CM-expert" checkpoints for various robot platforms and ta
 
 | Model                    | Use Case    | Description                                                                                                                                                                                              | 
 | ------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| $\pi_{0.5}$-LIBERO      | Fine-Tuning / Inference   | $\pi_{0.5}$ model fine-tuned for the [LIBERO](https://libero-project.github.io/datasets) |
-| $\pi_{0.5}$-ME-LIBERO          | Fine-Tuning / Inference | $\pi_{0.5}$ model fine-tuned for the [ME-LIBERO]([https://libero-project.github.io/datasets](https://huggingface.co/datasets/lbycdy/ME-LIBERO))  | 
+| $\pi_{0.5}$-LIBERO      | Fine-Tuning / Inference   | CM-VLA model fine-tuned for the [LIBERO](https://libero-project.github.io/datasets) |
+| $\pi_{0.5}$-ME-LIBERO          | Fine-Tuning / Inference | CM-VLA model fine-tuned for the [ME-LIBERO](https://huggingface.co/datasets/lbycdy/ME-LIBERO)  | 
