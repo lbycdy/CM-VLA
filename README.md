@@ -96,3 +96,4 @@ Once training is complete, we can run inference by spinning up a policy server a
 ```bash
 uv run scripts/serve_policy.py policy:checkpoint --policy.config=cmvla_libero --policy.dir=checkpoints/cmvla_libero/my_experiment/60000
 ```
+### 4. It is worth noting that the full version of the code and its weight will be made available immediately upon acceptance of the manuscript.
